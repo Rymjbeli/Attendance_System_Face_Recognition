@@ -131,6 +131,8 @@ async def websocket_listener(websocket, path):
                     matches = face_recognition.compare_faces(encodeListKnown, encodeFace)
                     cntr = 0
                     # print("Match Index", matchIndex)
+                    deleteSchedule= []
+
                     for match in matches:
                         if match:
                             # print("Known Face Detected")
@@ -143,13 +145,16 @@ async def websocket_listener(websocket, path):
                             print(studentIds[cntr])
                             # report as present
                             RegisterStudent(SessionId, studentIds[cntr][0])
-                            del studentIds[cntr]
-                            del encodeListKnown[cntr]
-                            if len(studentIds) == 0:
+                            deleteSchedule.append(cntr)
+                            if len(studentIds)-len(deleteSchedule) == 0:
                                 await websocket.send(str(1))
                                 del FaceDb[SessionId]
                                 return
                         cntr += 1
+                    for delete in deleteSchedule:
+                        del studentIds[delete]
+                        del encodeListKnown[delete]
+                    deleteSchedule = []
             if not matched:
                 await websocket.send(str(0))
     except websockets.exceptions.ConnectionClosedError:
